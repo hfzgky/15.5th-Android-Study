@@ -10,3 +10,6 @@ refactor : 코드 리팩토링
 comment : 필요 주석 추가 혹은 변경
 docs : 문서 수정
 gradle : 환경 변수 수정
+
+---
+notion : https://www.notion.so/14ce0587085d448aa8a9fd8e74baedef?v=75bc6aa3d0e44c4f9cb02d2d0793964f
