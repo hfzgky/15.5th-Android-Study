@@ -13,6 +13,3 @@
 
 ---
 notion : https://www.notion.so/14ce0587085d448aa8a9fd8e74baedef?v=75bc6aa3d0e44c4f9cb02d2d0793964f
-=======
-# app_center_example
-15.5기 안드로이드 파트 스터디 예시
