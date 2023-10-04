@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 15.5th-Android-Study
 15.5기 안드로이드 파트 스터디 기록용 Repository입니다.
 
@@ -17,4 +16,3 @@ notion : https://www.notion.so/14ce0587085d448aa8a9fd8e74baedef?v=75bc6aa3d0e44c
 =======
 # app_center_example
 15.5기 안드로이드 파트 스터디 예시
->>>>>>> f96b8c9af2c81da0fdb4c7e99bb29b84f1a84e6b
