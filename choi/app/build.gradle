@@ -1,11 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
-
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
 
 android {
     namespace 'com.example.study_choi'
@@ -17,8 +14,6 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-
-        buildConfigField "String", "TOUR_API_KEY", properties['tour_api_key']
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -56,6 +51,10 @@ android {
 dependencies {
     def nav_version = "2.5.3"
     implementation "androidx.navigation:navigation-compose:$nav_version"
+
+    implementation 'androidx.room:room-runtime:2.5.0'
+    kapt 'androidx.room:room-compiler:2.5.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-core:2.6.2'
 
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'

@@ -3,5 +3,7 @@ package com.example.study_choi
 enum class AllUI {
     LogIn,
     Home,
-    SignUp
+    SignUp,
+    AddTodoItem,
+    TodoItem
 }
