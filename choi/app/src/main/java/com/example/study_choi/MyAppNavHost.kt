@@ -30,6 +30,18 @@ fun MyAppNavHost() {
                 navController = navController
             )
         }
+
+        composable(AllUI.TodoItem.name) {
+            TodoItem(
+                navController = navController
+            )
+        }
+
+        composable(AllUI.AddTodoItem.name) {
+            AddTodoItem(
+
+            )
+        }
     }
 }
 
