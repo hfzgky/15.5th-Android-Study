@@ -39,7 +39,7 @@ fun MyAppNavHost() {
 
         composable(AllUI.AddTodoItem.name) {
             AddTodoItem(
-
+                navController = navController
             )
         }
     }

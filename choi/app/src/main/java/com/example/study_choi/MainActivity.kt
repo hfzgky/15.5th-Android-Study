@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     MyAppNavHost()
+                    // Home(navController = rememberNavController())
                 }
             }
         }
