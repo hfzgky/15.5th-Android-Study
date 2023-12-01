@@ -1,4 +1,4 @@
-package com.example.study_choi
+package com.example.study_choi.screen
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,7 +71,7 @@ fun itemCard(order: Int, navController: NavHostController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun Home(navController : NavHostController) {
 
@@ -93,7 +93,6 @@ fun Home(navController : NavHostController) {
 @Preview
 fun previewHome() {
     Study_choiTheme {
-        // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background

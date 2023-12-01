@@ -1,4 +1,4 @@
-package com.example.study_choi
+package com.example.study_choi.screen
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
