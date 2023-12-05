@@ -1,18 +1,18 @@
 package com.example.study_choi.screen
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,7 +35,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.study_choi.ui.theme.Study_choiTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogIn(navController : NavHostController) {
 
@@ -43,7 +42,7 @@ fun LogIn(navController : NavHostController) {
     val pwTextState = remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.padding(20.dp),
+        modifier = Modifier.padding(48.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -51,6 +50,7 @@ fun LogIn(navController : NavHostController) {
         Spacer(modifier = Modifier.height(128.dp))
 
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             label = { Text(text = "User ID") },
             value = idTextState.value,
             onValueChange = { idTextState.value = it }
@@ -59,6 +59,7 @@ fun LogIn(navController : NavHostController) {
         Spacer(modifier = Modifier.height(20.dp))
 
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             label = { Text(text = "Password") },
             value = pwTextState.value,
             visualTransformation = PasswordVisualTransformation(),
@@ -66,34 +67,38 @@ fun LogIn(navController : NavHostController) {
             onValueChange = { pwTextState.value = it }
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-            Button(
-                onClick = { navController.navigate(AllUI.Home.name) },
-                shape = RoundedCornerShape(50.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Text(text = "Login")
-            }
+        Button(
+            onClick = { navController.navigate(AllUI.Home.name) },
+            shape = RoundedCornerShape(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(16.dp, 0.dp)
+        ) {
+            Text(text = "Login")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        ClickableText(
-            text = AnnotatedString("sign up"),
-            onClick = { navController.navigate(AllUI.SignUp.name) },
-            style = TextStyle(
-                fontSize = 14.sp,
-                fontFamily = FontFamily.Default,
-                textAlign = TextAlign.End
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp, 0.dp, 38.dp, 0.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            ClickableText(
+                text = AnnotatedString("sign up"),
+                onClick = { navController.navigate(AllUI.SignUp.name) },
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Default,
+                    textAlign = TextAlign.End
+                ),
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(0.dp, 0.dp, 16.dp, 0.dp)
+            )
+        }
     }
 }
 
