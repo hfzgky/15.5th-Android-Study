@@ -1,7 +1,6 @@
-package com.example.study_choi
+package com.example.study_choi.screen
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,7 +27,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.study_choi.ui.theme.Study_choiTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUp(navController : NavHostController) {
 
@@ -38,7 +35,7 @@ fun SignUp(navController : NavHostController) {
     val pwConfirmTextState = remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.padding(20.dp),
+        modifier = Modifier.padding(48.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -46,41 +43,46 @@ fun SignUp(navController : NavHostController) {
         Spacer(modifier = Modifier.height(128.dp))
 
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             label = { Text(text = "User ID") },
             value = idTextState.value,
-            onValueChange = { idTextState.value = it })
+            onValueChange = { idTextState.value = it }
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             label = { Text(text = "Password") },
             value = pwTextState.value,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            onValueChange = { pwTextState.value = it })
+            onValueChange = { pwTextState.value = it }
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
         // 비밀번호 확인
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             label = { Text(text = "Password Confirm") },
             value = pwConfirmTextState.value,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            onValueChange = { pwConfirmTextState.value = it })
+            onValueChange = { pwConfirmTextState.value = it }
+        )
 
         Spacer(modifier = Modifier.height(64.dp))
 
-        Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
-            Button(
-                onClick = { navController.navigate(AllUI.LogIn.name) },
-                shape = RoundedCornerShape(50.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Text(text = "Sign Up")
-            }
+        Button(
+            onClick = { navController.navigate(AllUI.LogIn.name) },
+            shape = RoundedCornerShape(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(16.dp, 0.dp)
+        ) {
+            Text(text = "Sign Up")
         }
     }
 }
