@@ -15,6 +15,4 @@ interface UserDAO {
 
     @Update
     fun updateUser(userModel: UserModel)
-
-
 }

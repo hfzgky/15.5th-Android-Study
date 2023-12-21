@@ -93,7 +93,7 @@ fun TodoItemTopAppBar(navController: NavHostController) {
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Menu")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "back")
                     }
                 },
                 actions = {
@@ -166,7 +166,7 @@ fun previewTodoItem() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            TodoItemTopAppBar(navController = rememberNavController())
+            TodoItem(navController = rememberNavController())
         }
     }
 }

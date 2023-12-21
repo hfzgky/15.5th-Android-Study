@@ -30,6 +30,7 @@ import com.example.study_choi.ui.theme.Study_choiTheme
 @Composable
 fun SignUp(navController : NavHostController) {
 
+    val nameTextState = remember { mutableStateOf("") }
     val idTextState = remember { mutableStateOf("") }
     val pwTextState = remember { mutableStateOf("") }
     val pwConfirmTextState = remember { mutableStateOf("") }
@@ -44,7 +45,16 @@ fun SignUp(navController : NavHostController) {
 
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "User ID") },
+            label = { Text(text = "이름") },
+            value = nameTextState.value,
+            onValueChange = { nameTextState.value = it }
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(text = "ID") },
             value = idTextState.value,
             onValueChange = { idTextState.value = it }
         )
@@ -53,7 +63,7 @@ fun SignUp(navController : NavHostController) {
 
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "Password") },
+            label = { Text(text = "비밀번호") },
             value = pwTextState.value,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -65,7 +75,7 @@ fun SignUp(navController : NavHostController) {
         // 비밀번호 확인
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "Password Confirm") },
+            label = { Text(text = "비밀번호 확인") },
             value = pwConfirmTextState.value,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

@@ -15,6 +15,6 @@ object RetrofitBuilder {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
         }
-        return instance!!
+        return instance ?: throw NullPointerException("retrofit instance null")
     }
 }
