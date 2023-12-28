@@ -41,11 +41,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.study_choi.UserViewModel
 import com.example.study_choi.ui.theme.Study_choiTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserInfoTopAppBar(navController: NavHostController) {
+fun UserInfoTopAppBar(
+    navController: NavHostController,
+    userViewModel: UserViewModel
+) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
@@ -66,7 +70,7 @@ fun UserInfoTopAppBar(navController: NavHostController) {
             )
         },
         content = {
-            UserInfoContent(it, navController)
+            UserInfoContent(it, navController, userViewModel)
         }
     )
 }
@@ -74,8 +78,10 @@ fun UserInfoTopAppBar(navController: NavHostController) {
 @Composable
 fun UserInfoContent(
     padding: PaddingValues,
-    navController: NavHostController
+    navController: NavHostController,
+    userViewModel: UserViewModel
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,7 +111,7 @@ fun UserInfoContent(
                     .background(Color.LightGray)
             )
             Text(
-                text = "thskan123439@gmail.com",
+                text = userViewModel.name.value,
                 modifier = Modifier
                     .padding(4.dp)
             )
@@ -133,7 +139,7 @@ fun UserInfoContent(
                     .background(Color.LightGray)
             )
             Text(
-                text = "thskan123439@gmail.com",
+                text = userViewModel.loginId.value,
                 modifier = Modifier
                     .padding(4.dp)
             )
@@ -161,7 +167,7 @@ fun UserInfoContent(
                     .background(Color.LightGray)
             )
             Text(
-                text = "thskan123439@gmail.com",
+                text = userViewModel.password.value,
                 modifier = Modifier
                     .padding(4.dp)
             )
@@ -175,7 +181,9 @@ fun UserInfoContent(
         ) {
             ClickableText(
                 text = AnnotatedString("비밀번호 변경"),
-                onClick = { navController.navigate(AllUI.ChangePassword.name) },
+                onClick = {
+                    navController.navigate(AllUI.ChangePassword.name)
+                },
                 style = TextStyle(
                     fontSize = 14.sp,
                     color = Color.Blue,
@@ -191,8 +199,11 @@ fun UserInfoContent(
 }
 
 @Composable
-fun UserInfo(navController: NavHostController) {
-    UserInfoTopAppBar(navController)
+fun UserInfo(
+    navController: NavHostController,
+    userViewModel: UserViewModel
+) {
+    UserInfoTopAppBar(navController, userViewModel)
 }
 
 @Preview
@@ -203,7 +214,10 @@ fun preUserInfo() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            UserInfo(navController = rememberNavController())
+            UserInfo(
+                navController = rememberNavController(),
+                userViewModel = UserViewModel()
+            )
         }
     }
 }

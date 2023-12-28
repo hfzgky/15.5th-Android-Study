@@ -9,6 +9,7 @@ import com.example.study_choi.screen.AllUI
 import com.example.study_choi.screen.ChangePassword
 import com.example.study_choi.screen.Home
 import com.example.study_choi.screen.LogIn
+import com.example.study_choi.screen.ModifyTodoItem
 import com.example.study_choi.screen.SignUp
 import com.example.study_choi.screen.TodoItem
 import com.example.study_choi.screen.UserInfo
@@ -16,6 +17,8 @@ import com.example.study_choi.screen.UserInfo
 @Composable
 fun MyAppNavHost() {
     val navController = rememberNavController()
+    val userViewModel = UserViewModel()
+    val taskViewModel = TaskViewModel()
 
     NavHost(
         navController = navController,
@@ -23,13 +26,16 @@ fun MyAppNavHost() {
     ) {
         composable(AllUI.LogIn.name) {
              LogIn(
-                navController = navController
+                navController = navController,
+                viewModel = userViewModel
              )
         }
 
         composable(AllUI.Home.name) {
             Home(
-                navController = navController
+                navController = navController,
+                userViewModel = userViewModel,
+                taskViewModel = taskViewModel
             )
         }
 
@@ -41,25 +47,37 @@ fun MyAppNavHost() {
 
         composable(AllUI.TodoItem.name) {
             TodoItem(
-                navController = navController
+                navController = navController,
+                taskViewModel = taskViewModel
             )
         }
 
         composable(AllUI.AddTodoItem.name) {
             AddTodoItem(
-                navController = navController
+                navController = navController,
+                userViewModel = userViewModel
             )
         }
 
         composable(AllUI.UserInfo.name) {
             UserInfo(
-                navController = navController
+                navController = navController,
+                userViewModel = userViewModel
             )
         }
 
         composable(AllUI.ChangePassword.name) {
             ChangePassword(
-                navController = navController
+                navController = navController,
+                userViewModel = userViewModel
+            )
+        }
+        
+        composable(AllUI.ModifyTodoItem.name) {
+            ModifyTodoItem(
+                navController = navController,
+                userViewModel = userViewModel,
+                taskViewModel = taskViewModel
             )
         }
     }

@@ -7,5 +7,6 @@ enum class AllUI {
     AddTodoItem,
     TodoItem,
     UserInfo,
-    ChangePassword
+    ChangePassword,
+    ModifyTodoItem
 }

@@ -1,6 +1,7 @@
 package com.example.study_choi.screen
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,11 +40,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.study_choi.RetrofitBuilder
+import com.example.study_choi.UserControl
+import com.example.study_choi.UserViewModel
 import com.example.study_choi.ui.theme.Study_choiTheme
+import com.example.study_choi.userdto.UserRequestDTO
+import com.example.study_choi.userdto.UserResponseDTO
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChangePasswordTopAppBar(navController: NavHostController) {
+fun ChangePasswordTopAppBar(
+    navController: NavHostController,
+    userViewModel: UserViewModel
+) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
@@ -64,13 +76,21 @@ fun ChangePasswordTopAppBar(navController: NavHostController) {
             )
         },
         content = {
-            ChangePasswordContent(padding = it)
+            ChangePasswordContent(
+                padding = it,
+                userViewModel = userViewModel,
+                navController = navController
+            )
         }
     )
 }
 
 @Composable
-fun ChangePasswordContent(padding: PaddingValues) {
+fun ChangePasswordContent(
+    padding: PaddingValues,
+    userViewModel: UserViewModel,
+    navController: NavHostController
+) {
     val nowPwTextState = remember { mutableStateOf("") }
     val changePwTextState = remember { mutableStateOf("") }
     val changePwConfirmTextState = remember { mutableStateOf("") }
@@ -130,11 +150,40 @@ fun ChangePasswordContent(padding: PaddingValues) {
                     nPw = nowPwTextState,
                     cPw = changePwTextState,
                     cPwC = changePwConfirmTextState,
+                    userViewModel = userViewModel,
                     context = context
                 )
                 if (isAllCheck) {
-                    Toast.makeText(context, "비밀번호를 변경하였습니다.", Toast.LENGTH_SHORT)
-                        .show()
+                    try {
+                        val requestDTO = UserRequestDTO(
+                            loginId = userViewModel.loginId.value,
+                            name = userViewModel.name.value,
+                            password = changePwTextState.value,
+                            userId = userViewModel.userId.value
+                        )
+                        val userAPI = RetrofitBuilder.getInstanceFor().create(UserControl::class.java)
+                        val result = userAPI.retouchUser(requestDTO)
+                        result.enqueue(object : Callback<UserResponseDTO> {
+                            override fun onResponse(
+                                call: Call<UserResponseDTO>,
+                                response: Response<UserResponseDTO>
+                            ) {
+                               if (response.isSuccessful) {
+                                   userViewModel.getUserInfo(response = response)
+                                   Toast.makeText(context, "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT)
+                                       .show()
+                                   navController.popBackStack()
+                               }
+                            }
+
+                            override fun onFailure(call: Call<UserResponseDTO>, t: Throwable) {
+                                Log.e("errorCP", t.stackTrace.toString())
+                            }
+                        })
+
+                    } catch (e: NullPointerException) {
+                        Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
+                    }
                 }
             },
             modifier = Modifier
@@ -147,16 +196,28 @@ fun ChangePasswordContent(padding: PaddingValues) {
 }
 
 @Composable
-fun ChangePassword(navController: NavHostController) {
-    ChangePasswordTopAppBar(navController)
+fun ChangePassword(
+    navController: NavHostController,
+    userViewModel: UserViewModel
+) {
+    ChangePasswordTopAppBar(
+        navController = navController,
+        userViewModel = userViewModel
+    )
 }
 
 fun passwordConfirm(
     nPw: MutableState<String>,
     cPw: MutableState<String>,
     cPwC: MutableState<String>,
+    userViewModel: UserViewModel,
     context: Context
 ): Boolean {
+    if (userViewModel.password.value != nPw.value) {
+        Toast.makeText(context, "현재 비밀번호가 틀렸습니다.", Toast.LENGTH_SHORT)
+            .show()
+        return false
+    }
     if (nPw.value == cPw.value) {
         Toast.makeText(context, "현재 비밀번호와 같습니다.", Toast.LENGTH_SHORT)
             .show()
@@ -180,7 +241,10 @@ fun prevChangePassword() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            ChangePassword(navController = rememberNavController())
+            ChangePassword(
+                navController = rememberNavController(),
+                userViewModel = UserViewModel()
+            )
         }
     }
 }

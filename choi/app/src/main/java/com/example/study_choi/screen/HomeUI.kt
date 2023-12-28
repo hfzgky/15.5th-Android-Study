@@ -1,6 +1,7 @@
 package com.example.study_choi.screen
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -60,16 +61,32 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.study_choi.R
+import com.example.study_choi.RetrofitBuilder
+import com.example.study_choi.TaskControl
+import com.example.study_choi.TaskViewModel
+import com.example.study_choi.UserControl
+import com.example.study_choi.UserViewModel
+import com.example.study_choi.taskdto.TaskResponseDTO
 import com.example.study_choi.ui.theme.Study_choiTheme
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopAppBar(navController: NavHostController) {
+fun HomeTopAppBar(
+    navController: NavHostController,
+    userViewModel: UserViewModel,
+    taskViewModel: TaskViewModel
+) {
+    val context = LocalContext.current
     val openAlertDialog = remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val todoList = taskViewModel.todoList
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -92,7 +109,7 @@ fun HomeTopAppBar(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(text = "User Id")
+                    Text(text = userViewModel.name.value)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -154,7 +171,30 @@ fun HomeTopAppBar(navController: NavHostController) {
                 if (openAlertDialog.value) {
                     BaseDialog(
                         onDismissRequest = { openAlertDialog.value = false },
-                        onConfirmation = { openAlertDialog.value = false },
+                        onConfirmation = {
+                            try {
+                                val userAPI = RetrofitBuilder.getInstanceFor().create(UserControl::class.java)
+                                val result = userAPI.deleteUser(userViewModel.userId.value)
+                                result.enqueue(object : Callback<Unit> {
+                                    override fun onResponse(
+                                        call: Call<Unit>,
+                                        response: Response<Unit>
+                                    ) {
+                                        if (response.isSuccessful && response.code() == 200) {
+                                            Toast.makeText(context, "계정이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                                            navController.navigate(AllUI.LogIn.name)
+                                        }
+                                    }
+
+                                    override fun onFailure(call: Call<Unit>, t: Throwable) {
+                                        Log.e("errorItem", t.stackTrace.toString())
+                                    }
+                                })
+                            } catch (e: NullPointerException) {
+                                Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
+                            }
+                            openAlertDialog.value = false
+                        },
                         dialogTitle = "회원 탈퇴",
                         dialogText = "탈퇴를 진행하시겠습니까?",
                         icon = Icons.Default.Info
@@ -165,10 +205,14 @@ fun HomeTopAppBar(navController: NavHostController) {
                     contentPadding = it,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    itemsIndexed(
-                        listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-                    ) { _, _ ->
-                        itemCard(navController = navController)
+                    taskViewModel.getAllUsersTask(userViewModel)
+                    itemsIndexed(todoList.value) { _, item ->
+                        itemCard(
+                            navController = navController,
+                            item = item,
+                            taskViewModel = taskViewModel,
+                            userViewModel = userViewModel
+                        )
                     }
                 }
             }
@@ -177,14 +221,25 @@ fun HomeTopAppBar(navController: NavHostController) {
 }
 
 @Composable
-fun itemCard(navController: NavHostController) {
+fun itemCard(
+    navController: NavHostController,
+    item: TaskResponseDTO,
+    taskViewModel: TaskViewModel,
+    userViewModel: UserViewModel
+) {
     val checked = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val df = DecimalFormat("00")
+
     Box(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable { navController.navigate(AllUI.TodoItem.name) }
+            .clickable {
+                taskViewModel.storeTaskInfo(item)
+                navController.navigate(AllUI.TodoItem.name)
+            }
     ) {
         Spacer(
             Modifier
@@ -196,7 +251,7 @@ fun itemCard(navController: NavHostController) {
             horizontalArrangement = Arrangement.Start
         ) {
             Text(
-                text = "Todo Title",
+                text = item.title,
                 modifier = Modifier
                     .padding(8.dp, 0.dp, 0.dp, 0.dp),
                 fontWeight = FontWeight.Bold,
@@ -209,7 +264,7 @@ fun itemCard(navController: NavHostController) {
                 horizontalArrangement = Arrangement.End
             ) {
                 Text(
-                    text = "deadline",
+                    text = "${item.deadline[0]}-${df.format(item.deadline[1])}-${df.format(item.deadline[2])}",
                     maxLines = 1,
                     overflow = TextOverflow.Visible
                 )
@@ -218,9 +273,31 @@ fun itemCard(navController: NavHostController) {
                     checked = checked.value,
                     onCheckedChange = {
                         checked.value = !checked.value
-                        if (checked.value) {
+                        try {
+                            if (checked.value) {
+                                val taskAPI = RetrofitBuilder.getInstanceFor().create(TaskControl::class.java)
+                                val result = taskAPI.deleteTask(item.taskId)
+                                result.enqueue(object : Callback<Unit> {
+                                    override fun onResponse(
+                                        call: Call<Unit>,
+                                        response: Response<Unit>
+                                    ) {
+                                        if (response.isSuccessful) {
+                                            taskViewModel.getAllUsersTask(userViewModel)
+                                            checked.value = !checked.value
+                                        }
+                                    }
 
+                                    override fun onFailure(call: Call<Unit>, t: Throwable) {
+                                        Log.e("errorHome", t.stackTrace.toString())
+                                    }
+                                })
+
+                            }
+                        } catch (e: NullPointerException) {
+                            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
                         }
+
                     }
                 )
             }
@@ -275,10 +352,18 @@ fun BaseDialog(
 }
 
 @Composable
-fun Home(navController: NavHostController) {
+fun Home(
+    navController: NavHostController,
+    userViewModel: UserViewModel,
+    taskViewModel: TaskViewModel
+) {
     OnBackPressed()
     Column {
-        HomeTopAppBar(navController = navController)
+        HomeTopAppBar(
+            navController = navController,
+            userViewModel = userViewModel,
+            taskViewModel = taskViewModel
+        )
     }
 }
 
@@ -307,7 +392,11 @@ fun previewHome() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Home(navController = rememberNavController())
+            Home(
+                navController = rememberNavController(),
+                userViewModel = UserViewModel(),
+                taskViewModel = TaskViewModel()
+            )
         }
     }
 }
