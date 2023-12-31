@@ -1,74 +1,55 @@
 package com.example.study_choi.screen
 
-import android.icu.text.SimpleDateFormat
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.study_choi.RetrofitBuilder
 import com.example.study_choi.TaskControl
+import com.example.study_choi.TaskViewModel
 import com.example.study_choi.UserViewModel
 import com.example.study_choi.taskdto.TaskRequestDTO
 import com.example.study_choi.taskdto.TaskResponseDTO
-import com.example.study_choi.ui.theme.Study_choiTheme
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.DecimalFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTodoItemTopAppBar(
+fun ModifyTodoItemTopAppBar(
     navController: NavHostController,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    taskViewModel: TaskViewModel
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
@@ -90,9 +71,10 @@ fun AddTodoItemTopAppBar(
             )
         },
         content = {
-            AddTodoItemContent(
+            ModifyTodoItemContent(
                 padding = it,
                 userViewModel = userViewModel,
+                taskViewModel = taskViewModel,
                 navController = navController
             )
         }
@@ -100,21 +82,24 @@ fun AddTodoItemTopAppBar(
 }
 
 @Composable
-fun AddTodoItemContent(
+fun ModifyTodoItemContent(
     padding: PaddingValues,
     userViewModel: UserViewModel,
+    taskViewModel: TaskViewModel,
     navController: NavHostController
 ) {
+    val df = DecimalFormat("00")
+    val item = taskViewModel.todoItem.value
     val context = LocalContext.current
 
     val openTimeDialog = remember { mutableStateOf(false) }
     val openDateDialog = remember { mutableStateOf(false) }
 
-    val deadLineDate = remember { mutableStateOf("날짜") }
-    val deadLineTime = remember { mutableStateOf("시간") }
+    val deadLineDate = remember { mutableStateOf("${item.deadline[0]}-${df.format(item.deadline[1])}-${df.format(item.deadline[2])}") }
+    val deadLineTime = remember { mutableStateOf("${df.format(item.deadline[3])}:${df.format(item.deadline[4])}") }
 
-    val titleTextState = remember { mutableStateOf("") }
-    val descriptionTextState = remember { mutableStateOf("") }
+    val titleTextState = remember { mutableStateOf(item.title) }
+    val descriptionTextState = remember { mutableStateOf(item.description) }
 
     Column(
         modifier = Modifier
@@ -173,12 +158,12 @@ fun AddTodoItemContent(
                     val requestDTO = TaskRequestDTO(
                         deadline = deadLineDate.value + "T" + deadLineTime.value,
                         description = descriptionTextState.value,
-                        taskId = 0,
+                        taskId = item.taskId,
                         title = titleTextState.value,
                         userId = userViewModel.userId.value
                     )
                     val todoAPI = RetrofitBuilder.getInstanceFor().create(TaskControl::class.java)
-                    val result = todoAPI.addNewTask(requestDTO)
+                    val result = todoAPI.retouchTask(requestDTO)
                     result.enqueue(object : Callback<TaskResponseDTO> {
                         override fun onResponse(
                             call: Call<TaskResponseDTO>,
@@ -186,12 +171,20 @@ fun AddTodoItemContent(
                         ) {
                             if (response.isSuccessful) {
                                 navController.popBackStack()
-                                Toast.makeText(context, "일정이 추가 되었습니다.", Toast.LENGTH_SHORT).show()
+                                taskViewModel.storeTaskInfo(
+                                    TaskResponseDTO(
+                                        deadline = response.body()?.deadline ?: item.deadline,
+                                        description = response.body()?.description ?: item.description,
+                                        taskId = response.body()?.taskId ?: item.taskId,
+                                        title = response.body()?.title ?: item.title
+                                    )
+                                )
+                                Toast.makeText(context, "일정이 수정 되었습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
 
                         override fun onFailure(call: Call<TaskResponseDTO>, t: Throwable) {
-                            Log.e("errorAdd", t.stackTrace.toString())
+                            Log.e("errorModify", t.stackTrace.toString())
                         }
                     })
                 }catch (e: NullPointerException) {
@@ -203,7 +196,7 @@ fun AddTodoItemContent(
                 .height(50.dp)
                 .padding(16.dp, 0.dp)
         ) {
-            Text(text = "추가")
+            Text(text = "수정")
         }
 
         if (openDateDialog.value) {
@@ -223,128 +216,15 @@ fun AddTodoItemContent(
 }
 
 @Composable
-fun AddTodoItem(
+fun ModifyTodoItem(
     navController: NavHostController,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    taskViewModel: TaskViewModel
 ) {
-    AddTodoItemTopAppBar(
+    ModifyTodoItemTopAppBar(
         navController = navController,
-        userViewModel = userViewModel
+        userViewModel = userViewModel,
+        taskViewModel = taskViewModel
     )
 
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DeadLineTimePickerDialog(
-    openTimeDialog: MutableState<Boolean>,
-    deadLineTime: MutableState<String>
-) {
-    val timePickerState = rememberTimePickerState()
-    val df = DecimalFormat("00")
-
-    AlertDialog(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(size = 12.dp)
-            ),
-        onDismissRequest = { openTimeDialog.value = false }
-    ) {
-        Column(
-            modifier = Modifier
-                .background(
-                    color = Color.LightGray.copy(alpha = 0.3f)
-                )
-                .padding(top = 28.dp, start = 20.dp, end = 20.dp, bottom = 12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            TimePicker(state = timePickerState)
-
-            Row(
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = { openTimeDialog.value = false }) {
-                    Text(text = "Cancel")
-                }
-
-                TextButton(
-                    onClick = {
-                        openTimeDialog.value = false
-                        deadLineTime.value =
-                            "${df.format(timePickerState.hour)}:${df.format(timePickerState.minute)}"
-                    }
-                ) {
-                    Text(text = "OK")
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DeadlineDatePickerDialog(
-    openDateDialog: MutableState<Boolean>,
-    deadLineDate: MutableState<String>
-) {
-    val datePickerState = rememberDatePickerState()
-    val confirmEnabled = remember {
-        derivedStateOf { datePickerState.selectedDateMillis != null }
-    }
-    DatePickerDialog(
-        onDismissRequest = { openDateDialog.value = false },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    openDateDialog.value = false
-                    val selectedDate = datePickerState.selectedDateMillis?.let {
-                        convertMillisToDate(it)
-                    } ?: ""
-                    deadLineDate.value = selectedDate
-                },
-                enabled = confirmEnabled.value
-            ) {
-                Text(text = "OK")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    openDateDialog.value = false
-                }
-            ) {
-                Text("Cancel")
-            }
-        }
-    ) {
-        DatePicker(state = datePickerState)
-    }
-}
-
-private fun convertMillisToDate(millis: Long): String {
-    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.KOREAN)
-    return formatter.format(Date(millis))
-}
-
-@Preview
-@Composable
-fun previewAddTodo() {
-    Study_choiTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            AddTodoItem(
-                navController = rememberNavController(),
-                userViewModel = UserViewModel()
-            )
-        }
-    }
 }

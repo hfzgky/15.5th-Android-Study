@@ -1,5 +1,7 @@
 package com.example.study_choi.screen
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -33,10 +36,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.study_choi.RetrofitBuilder
+import com.example.study_choi.UserControl
+import com.example.study_choi.UserViewModel
 import com.example.study_choi.ui.theme.Study_choiTheme
+import com.example.study_choi.userdto.UserRequestDTO
+import com.example.study_choi.userdto.UserResponseDTO
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
-fun LogIn(navController : NavHostController) {
+fun LogIn(
+    navController : NavHostController,
+    viewModel: UserViewModel
+) {
+    val context = LocalContext.current
 
     val idTextState = remember { mutableStateOf("") }
     val pwTextState = remember { mutableStateOf("") }
@@ -70,7 +85,41 @@ fun LogIn(navController : NavHostController) {
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
-            onClick = { navController.navigate(AllUI.Home.name) },
+            onClick = {
+                try {
+                    val requestDTO = UserRequestDTO(
+                        loginId = idTextState.value,
+                        name = "",
+                        password = pwTextState.value
+                    )
+                    val userAPI = RetrofitBuilder.getInstanceFor().create(UserControl::class.java)
+                    val result = userAPI.userLogin(requestDTO)
+                    result.enqueue(object : Callback<UserResponseDTO> {
+                        override fun onResponse(
+                            call: Call<UserResponseDTO>,
+                            response: Response<UserResponseDTO>
+                        ) {
+                            if(response.isSuccessful && response.code() == 200) {
+                                viewModel.getUserInfo(response)
+                                navController.navigate(AllUI.Home.name)
+                            } else if (response.code() == 401) {
+                                Toast.makeText(
+                                    context,
+                                    "올바르지 않은 ID 혹은 비밀번호입니다.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                        }
+
+                        override fun onFailure(call: Call<UserResponseDTO>, t: Throwable) {
+                            Log.e("errorLog", t.stackTrace.toString())
+                        }
+                    })
+                } catch (e: NullPointerException) {
+                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
+                }
+            },
             shape = RoundedCornerShape(50.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,7 +160,10 @@ fun previewLog() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            LogIn(rememberNavController())
+            LogIn(
+                navController = rememberNavController(),
+                viewModel = UserViewModel()
+            )
         }
     }
 }

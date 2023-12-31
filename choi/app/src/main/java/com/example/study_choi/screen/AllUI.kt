@@ -5,5 +5,8 @@ enum class AllUI {
     Home,
     SignUp,
     AddTodoItem,
-    TodoItem
+    TodoItem,
+    UserInfo,
+    ChangePassword,
+    ModifyTodoItem
 }
